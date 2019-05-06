@@ -1,4 +1,4 @@
-package com.hadoop.mr.order.topn;
+package com.hadoop.mr.order.topn.grouping;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-public class OrderBean implements WritableComparable<OrderBean>, Serializable {
+public class OrderBean implements WritableComparable<OrderBean>{
 
 	private String orderId;
 	private String userId;
