@@ -1,11 +1,9 @@
 package com.hadoop.mr.friends;
 
-import com.hadoop.mr.order.topn.OrderBean;
 import com.hadoop.mr.order.topn.OrderTopn;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -45,6 +43,8 @@ import java.util.List;
  * 输出
  *
  * A-C -> B
+ * A-C -> D
+ * B-D -> A
  */
 public class CommonFriendOne {
 
@@ -85,7 +85,7 @@ public class CommonFriendOne {
 
         Job job = Job.getInstance(conf);
 
-        job.setJarByClass(OrderTopn.class);
+        job.setJarByClass(CommonFriendOne.class);
 
         job.setMapperClass(CommonFriendOneMapper.class);
         job.setReducerClass(CommonFriendOneReduce.class);
