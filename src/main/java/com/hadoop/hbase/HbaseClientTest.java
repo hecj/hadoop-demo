@@ -1,15 +1,16 @@
 package com.hadoop.hbase;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.*;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.regionserver.BloomType;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class HbaseClientTest {
 	
 	Connection conn = null;
@@ -106,4 +107,103 @@ public class HbaseClientTest {
 	/**
 	 * DML -- 数据的增删改查
 	 */
+	
+	/**
+	 * 增加
+	 */
+	@Test
+	public void testPut() throws IOException {
+		// 获取table对象
+		Table table = conn.getTable(TableName.valueOf("user_info"));
+		// 构造要插入的数据为一个Put类型的对象
+		// 1个put对象1个行键 也就是1个rowkey
+		
+		List<Put> list = new ArrayList<>();
+		
+		Put put = new Put(Bytes.toBytes("002"));
+		put.addColumn(Bytes.toBytes("base_info"),Bytes.toBytes("username"),Bytes.toBytes("何超杰"));
+		put.addColumn(Bytes.toBytes("base_info"),Bytes.toBytes("age"),Bytes.toBytes(18));
+		put.addColumn(Bytes.toBytes("base_info"),Bytes.toBytes("sex"),Bytes.toBytes("男"));
+		
+		Put put2 = new Put(Bytes.toBytes("003"));
+		put2.addColumn(Bytes.toBytes("base_info"),Bytes.toBytes("username"),Bytes.toBytes("何超杰"));
+		put2.addColumn(Bytes.toBytes("base_info"),Bytes.toBytes("age"),Bytes.toBytes(18));
+		put2.addColumn(Bytes.toBytes("base_info"),Bytes.toBytes("sex"),Bytes.toBytes("男"));
+		
+		
+		list.add(put);
+		list.add(put2);
+		
+		table.put(list);
+		
+		table.close();
+		conn.close();
+	}
+	
+	/**
+	 * 删除
+	 */
+	@Test
+	public void testDelete() throws IOException {
+		// 获取table对象
+		Table table = conn.getTable(TableName.valueOf("user_info"));
+		
+		List<Delete> list = new ArrayList<>();
+		
+		// 删除001行
+		Delete delete = new Delete(Bytes.toBytes("001"));
+		
+		// 只删除002行的 base_info列族的一个属性
+		Delete delete2 = new Delete(Bytes.toBytes("002"));
+		delete2.addColumn(Bytes.toBytes("base_info"),Bytes.toBytes("username"));
+		
+		list.add(delete);
+		list.add(delete2);
+		
+		table.delete(list);
+		
+		table.close();
+		conn.close();
+	}
+	
+	/**
+	 * 查询
+	 */
+	@Test
+	public void testGet() throws IOException {
+		// 获取table对象
+		Table table = conn.getTable(TableName.valueOf("user_info"));
+		
+		Get get = new Get(Bytes.toBytes("002"));
+		
+		Result result = table.get(get);
+		
+		byte[] values = result.getValue(Bytes.toBytes("base_info"),Bytes.toBytes("username"));
+		System.out.println(new String(values));
+		
+		byte[] rowkey = result.getRow();
+		System.out.println(new String(rowkey));
+		// 遍历整行结果中的所有kv单元格
+		CellScanner cellScannable = result.cellScanner();
+		while(cellScannable.advance()){
+			Cell cell = cellScannable.current();
+			
+			byte[] rowArray = cell.getRowArray();
+			System.out.println(new String(rowArray,cell.getRowOffset(),cell.getRowLength()));
+			
+			byte[] familys = cell.getFamilyArray(); // 列族名的字节数组
+			System.out.println(new String(familys,cell.getFamilyOffset(),cell.getFamilyLength()));
+			byte[] qualifiers =  cell.getQualifierArray(); // 列名的字节数组
+			System.out.println(new String(qualifiers,cell.getQualifierOffset(),cell.getQualifierLength()));
+			
+			byte[] valueArray =  cell.getValueArray(); // 数据的字节数组
+			System.out.println(new String(valueArray,cell.getValueOffset(),cell.getValueLength()));
+		}
+		
+		table.get(get);
+		table.close();
+		conn.close();
+	}
+	
+	
 }
